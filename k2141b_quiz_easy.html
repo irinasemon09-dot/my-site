@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест: Планета K2-141b</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #04060f;
+    --surface: #0a0e1f;
+    --card: #0f1426;
+    --border: #1a2040;
+    --accent: #7c3aed;
+    --accent2: #4f46e5;
+    --glow: #a78bfa;
+    --correct: #22c55e;
+    --wrong: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .star {
+    position: absolute; border-radius: 50%; background: white;
+    animation: twinkle var(--d,3s) ease-in-out infinite alternate;
+    animation-delay: var(--dl,0s);
+  }
+  @keyframes twinkle {
+    from { opacity: var(--mn,.1); }
+    to   { opacity: var(--mx,.8); }
+  }
+
+  .neb { position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(90px); animation: drift 20s ease-in-out infinite alternate; }
+  .neb1 { width:500px;height:500px;background:#4f46e5;opacity:.1;top:-150px;right:-80px; }
+  .neb2 { width:450px;height:450px;background:#7c3aed;opacity:.1;bottom:-80px;left:-120px;animation-delay:-8s; }
+  .neb3 { width:300px;height:300px;background:#e11d48;opacity:.07;top:40%;left:60%;animation-delay:-4s; }
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(30px,20px) scale(1.08); }
+  }
+
+  .container { position: relative; z-index: 1; max-width: 840px; margin: 0 auto; padding: 44px 20px 90px; }
+
+  header { text-align: center; margin-bottom: 52px; animation: fadeDown .8s ease both; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--glow); background: rgba(124,58,237,.15);
+    border: 1px solid rgba(124,58,237,.3);
+    padding: 6px 16px; border-radius: 99px; margin-bottom: 20px;
+  }
+  h1 {
+    font-size: clamp(2rem,5.5vw,3.4rem); font-weight: 800; line-height: 1.08; margin-bottom: 14px;
+    background: linear-gradient(130deg, #fff 20%, var(--glow) 60%, #818cf8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .subtitle { color: var(--muted); font-family: 'Space Mono', monospace; font-size: .82rem; line-height: 1.6; }
+
+  .prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; animation: fadeDown .8s .15s ease both; opacity: 0; animation-fill-mode: both; }
+  .prog-label { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+  .prog-score { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--glow); }
+  .prog-track { height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 44px; animation: fadeDown .8s .15s ease both; opacity: 0; animation-fill-mode: both; }
+  .prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent2), var(--glow)); transition: width .5s cubic-bezier(.4,0,.2,1); width: 0%; }
+
+  .q-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 22px;
+    padding: 38px 40px; margin-bottom: 16px; display: none;
+    animation: slideUp .45s ease both; position: relative; overflow: hidden;
+  }
+  .q-card::before {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(ellipse at top right, rgba(124,58,237,.06), transparent 60%);
+    pointer-events: none;
+  }
+  .q-card.active { display: block; }
+  .q-card.answered { border-color: rgba(124,58,237,.3); }
+
+  .q-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .q-num-badge {
+    font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--glow);
+    background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.25);
+    padding: 4px 12px; border-radius: 99px;
+  }
+  .q-cat { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+  .q-text { font-size: 1.12rem; font-weight: 600; line-height: 1.55; color: #f1f5f9; margin-bottom: 26px; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px; border-radius: 13px;
+    border: 1px solid var(--border); background: var(--surface);
+    cursor: pointer; transition: all .2s ease; position: relative; overflow: hidden;
+  }
+  .opt::after {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg,var(--accent2),var(--glow));
+    opacity:0; transition: opacity .2s; z-index:0;
+  }
+  .opt:hover:not(.locked)::after { opacity:.06; }
+  .opt:hover:not(.locked) { border-color: var(--glow); transform: translateX(5px); }
+  .opt-l {
+    font-family:'Space Mono',monospace; font-size:11px; font-weight:700;
+    color:var(--muted); width:28px; height:28px; border-radius:7px;
+    background:var(--border); display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition:all .2s; position:relative; z-index:1;
+  }
+  .opt-t { font-size:.93rem; line-height:1.4; position:relative; z-index:1; }
+  .opt.correct { border-color:var(--correct); background:rgba(34,197,94,.09); }
+  .opt.correct .opt-l { background:var(--correct); color:#fff; }
+  .opt.wrong   { border-color:var(--wrong);   background:rgba(239,68,68,.09); }
+  .opt.wrong   .opt-l { background:var(--wrong); color:#fff; }
+  .opt.locked  { cursor:default; }
+  .opt.locked:hover { transform:none; }
+
+  .fb { display:none; margin-top:16px; padding:13px 18px; border-radius:11px; font-family:'Space Mono',monospace; font-size:12.5px; animation: fadeIn .3s ease; }
+  .fb.show { display:block; }
+  .fb.ok  { background:rgba(34,197,94,.09);  color:#4ade80; border:1px solid rgba(34,197,94,.2); }
+  .fb.err { background:rgba(239,68,68,.09);  color:#f87171; border:1px solid rgba(239,68,68,.2); }
+
+  .nav { display:flex; justify-content:space-between; align-items:center; margin-top:30px; gap:12px; }
+  .btn { font-family:'Syne',sans-serif; font-weight:700; font-size:.88rem; padding:12px 30px; border-radius:11px; border:none; cursor:pointer; transition:all .2s ease; letter-spacing:.4px; }
+  .btn-p  { background:linear-gradient(135deg,var(--accent2),var(--glow)); color:#fff; }
+  .btn-p:hover  { opacity:.9; transform:translateY(-1px); box-shadow:0 8px 30px rgba(124,58,237,.35); }
+  .btn-g  { background:transparent; color:var(--muted); border:1px solid var(--border); }
+  .btn-g:hover  { border-color:var(--glow); color:var(--glow); }
+  .btn:disabled { opacity:.3; cursor:not-allowed; transform:none!important; box-shadow:none!important; }
+
+  #results { display:none; text-align:center; animation: slideUp .6s ease both; }
+  .ring-wrap { width:170px;height:170px;margin:0 auto 32px;position:relative; }
+  .ring-wrap svg { transform:rotate(-90deg); }
+  .rbg { fill:none;stroke:var(--border);stroke-width:9; }
+  .rfill { fill:none;stroke-width:9;stroke:url(#rg);stroke-linecap:round; stroke-dasharray:440; stroke-dashoffset:440; transition: stroke-dashoffset 1.3s cubic-bezier(.4,0,.2,1); }
+  .ring-inner { position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center; }
+  .r-num { font-size:2.4rem;font-weight:800; background:linear-gradient(135deg,var(--accent2),var(--glow)); -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+  .r-den { font-family:'Space Mono',monospace;font-size:11px;color:var(--muted); }
+  .r-title { font-size:1.9rem;font-weight:800;margin-bottom:8px; }
+  .r-msg   { font-family:'Space Mono',monospace;font-size:.83rem;color:var(--muted);margin-bottom:44px; }
+
+  .stats { display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:40px; }
+  .stat-chip { padding:10px 22px;border-radius:12px;font-family:'Space Mono',monospace;font-size:12px; border:1px solid var(--border);background:var(--card);color:var(--muted); }
+  .stat-chip strong { color:var(--text);display:block;font-size:1.4rem;font-weight:700; }
+
+  .review { text-align:left;margin-bottom:40px; }
+  .rev-hdr { font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px; text-transform:uppercase;color:var(--muted);margin-bottom:14px; }
+  .rev-item { display:flex;gap:12px;padding:13px 16px;border-radius:11px; margin-bottom:8px;font-size:.87rem;line-height:1.45; }
+  .rev-item.ok  { background:rgba(34,197,94,.06); }
+  .rev-item.err { background:rgba(239,68,68,.06); }
+  .rev-icon { font-size:.95rem;flex-shrink:0;margin-top:2px; }
+  .rev-qn { font-family:'Space Mono',monospace;font-size:.75rem;color:var(--muted);margin-bottom:3px; }
+  .rev-ans { color:#f87171;font-size:.8rem;margin-top:4px;font-family:'Space Mono',monospace; }
+
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideUp  { from{opacity:0;transform:translateY(24px)}  to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+
+  @media(max-width:520px){
+    .q-card{padding:24px 18px;}
+    .nav{flex-direction:column;}
+    .btn{width:100%;}
+    .stats{gap:8px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="neb neb1"></div>
+<div class="neb neb2"></div>
+<div class="neb neb3"></div>
+
+<div class="container">
+  <header>
+    <div class="badge">🌋 Екзопланети · 12 запитань</div>
+    <h1>Планета K2-141b</h1>
+  </header>
+
+  <div id="quiz-wrap">
+    <div class="prog-row">
+      <span class="prog-label" id="prog-label">Питання 1 з 12</span>
+      <span class="prog-score" id="prog-score">0 / 12</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    <div id="q-container"></div>
+    <div class="nav">
+      <button class="btn btn-g" id="btn-prev" onclick="nav(-1)" disabled>← Назад</button>
+      <button class="btn btn-p" id="btn-next" onclick="nav(1)"  disabled>Далі →</button>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="ring-wrap">
+      <svg width="170" height="170" viewBox="0 0 150 150">
+        <defs>
+          <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   style="stop-color:#4f46e5"/>
+            <stop offset="100%" style="stop-color:#a78bfa"/>
+          </linearGradient>
+        </defs>
+        <circle class="rbg" cx="75" cy="75" r="70"/>
+        <circle class="rfill" id="rfill" cx="75" cy="75" r="70"/>
+      </svg>
+      <div class="ring-inner">
+        <span class="r-num" id="r-num">0</span>
+        <span class="r-den">з 12</span>
+      </div>
+    </div>
+    <h2 class="r-title" id="r-title"></h2>
+    <p class="r-msg"   id="r-msg"></p>
+    <div class="stats">
+      <div class="stat-chip"><strong id="s-pct">0%</strong>Результат</div>
+      <div class="stat-chip"><strong id="s-ok">0</strong>Правильних</div>
+      <div class="stat-chip"><strong id="s-err">0</strong>Помилок</div>
+    </div>
+    <div class="review">
+      <p class="rev-hdr">Детальний розбір</p>
+      <div id="rev-list"></div>
+    </div>
+    <button class="btn btn-p" onclick="restart()" style="display:block;margin:0 auto;padding:14px 52px;">🔄 Пройти ще раз</button>
+  </div>
+</div>
+
+<script>
+const QS = [
+  { cat: "Планети", q: "З чого складаються кам'янисті планети?", opts: ["З газів", "З каміння і металу", "З води", "З льоду"], a: 1 },
+  { cat: "Планети", q: "Які з цих планет кам'янисті?", opts: ["Юпітер і Сатурн", "Нептун і Уран", "Земля і Марс", "Плутон і Юпітер"], a: 2 },
+
+  { cat: "Супер-Землі", q: "Супер-Землі — це планети, які...", opts: ["Менші за Землю", "Більші за Землю", "Без повітря", "Дуже холодні"], a: 1 },
+  { cat: "Супер-Землі", q: "Яка це планета K2-141b?", opts: ["Газова", "Крижана", "Кам'яниста", "Маленька"], a: 2 },
+
+  { cat: "Відкриття", q: "Як знайшли K2-141b?", opts: ["За рухом зірки", "Коли вона проходила перед зіркою", "Фото", "Радіо"], a: 1 },
+  { cat: "Відкриття", q: "Що стається, коли планета проходить перед зіркою?", opts: ["Зірка світить яскравіше", "Світло трохи слабшає", "Зірка зникає", "Планету видно без телескопа"], a: 1 },
+
+  { cat: "Розташування", q: "Далеко чи близько від Землі ця планета?", opts: ["Дуже близько", "Далеко"], a: 1 },
+  { cat: "Розташування", q: "У якому сузір'ї вона?", opts: ["Оріон", "Водолій", "Центавр", "Лебідь"], a: 1 },
+
+  { cat: "Температура", q: "Що стається з камінням на гарячій стороні планети?", opts: ["Замерзає", "Нічого", "Плавиться", "Зникає"], a: 2 },
+
+  { cat: "Атмосфера", q: "З чого складається повітря на цій планеті?", opts: ["Як на Землі", "З пари каміння", "З льоду", "Немає повітря"], a: 1 },
+
+  { cat: "Наука", q: "Чи може там бути життя?", opts: ["Так", "Ні", "Невідомо", "Тільки мікроби"], a: 1 },
+  { cat: "Наука", q: "Чому вчені вивчають цю планету?", opts: ["Заради ресурсів", "Щоб більше дізнатися про планети", "Щоб полетіти туди", "Без причини"], a: 1 }
+];
+
+const LT = ['А','Б','В','Г'];
+let cur = 0, ans = new Array(QS.length).fill(null);
+
+(()=>{
+  const c = document.getElementById('stars');
+  for(let i=0;i<140;i++){
+    const s=document.createElement('div'); s.className='star';
+    const sz=Math.random()*2+.4;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*3+2).toFixed(1)}s;--dl:${(Math.random()*5).toFixed(1)}s;--mn:${(Math.random()*.15).toFixed(2)};--mx:${(Math.random()*.6+.2).toFixed(2)};`;
+    c.appendChild(s);
+  }
+})();
+
+(()=>{
+  const wrap = document.getElementById('q-container');
+  QS.forEach((q,qi)=>{
+    const d=document.createElement('div');
+    d.className='q-card'+(qi===0?' active':'');
+    d.id=`qc${qi}`;
+    d.innerHTML=`
+      <div class="q-meta">
+        <span class="q-num-badge">Питання ${qi+1} / ${QS.length}</span>
+        <span class="q-cat">${q.cat}</span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((o,oi)=>`
+          <div class="opt" id="o${qi}_${oi}" onclick="pick(${qi},${oi})">
+            <span class="opt-l">${LT[oi]}</span>
+            <span class="opt-t">${o}</span>
+          </div>`).join('')}
+      </div>
+      <div class="fb" id="fb${qi}"></div>
+    `;
+    wrap.appendChild(d);
+  });
+})();
+
+function pick(qi,oi){
+  if(ans[qi]!==null)return;
+  ans[qi]=oi;
+  const ca=QS[qi].a;
+  document.getElementById(`qc${qi}`).classList.add('answered');
+  QS[qi].opts.forEach((_,i)=>{
+    const el=document.getElementById(`o${qi}_${i}`);
+    el.classList.add('locked');
+    if(i===ca) el.classList.add('correct');
+    if(i===oi&&oi!==ca) el.classList.add('wrong');
+  });
+  const fb=document.getElementById(`fb${qi}`);
+  fb.classList.add('show');
+  if(oi===ca){ fb.classList.add('ok');  fb.textContent='✓ Правильно!'; }
+  else { fb.classList.add('err'); fb.textContent=`✗ Правильна відповідь: ${LT[ca]}) ${QS[qi].opts[ca]}`; }
+  refreshUI();
+}
+
+function refreshUI(){
+  const done=ans[cur]!==null;
+  const isLast=cur===QS.length-1;
+  const allDone=ans.every(a=>a!==null);
+  document.getElementById('btn-prev').disabled=cur===0;
+  const nb=document.getElementById('btn-next');
+  nb.disabled=!done;
+  nb.textContent = isLast&&allDone ? '📊 Результати' : 'Далі →';
+  const correct=ans.reduce((s,a,i)=>s+(a===QS[i].a?1:0),0);
+  document.getElementById('prog-label').textContent=`Питання ${cur+1} з ${QS.length}`;
+  document.getElementById('prog-score').textContent=`${correct} / ${QS.length}`;
+  document.getElementById('prog-fill').style.width=`${(cur/QS.length)*100}%`;
+}
+
+function nav(d){
+  if(cur+d===QS.length){ showResults(); return; }
+  document.getElementById(`qc${cur}`).classList.remove('active');
+  cur+=d;
+  document.getElementById(`qc${cur}`).classList.add('active');
+  refreshUI();
+}
+
+function showResults(){
+  document.getElementById('quiz-wrap').style.display='none';
+  document.getElementById('results').style.display='block';
+  const sc=ans.reduce((s,a,i)=>s+(a===QS[i].a?1:0),0);
+  const pct=sc/QS.length;
+  document.getElementById('r-num').textContent=sc;
+  document.getElementById('s-pct').textContent=Math.round(pct*100)+'%';
+  document.getElementById('s-ok').textContent=sc;
+  document.getElementById('s-err').textContent=QS.length-sc;
+  const circ=2*Math.PI*70;
+  setTimeout(()=>{ document.getElementById('rfill').style.strokeDashoffset=circ*(1-pct); },100);
+  let title,msg;
+  if(pct===1)       { title='🌟 Бездоганно!';         msg='Ти знаєш про K2-141b все — 12 з 12!'; }
+  else if(pct>=.8)  { title='🚀 Відмінно!';           msg='Чудові знання про цю екстремальну планету.'; }
+  else if(pct>=.6)  { title='🪐 Добре!';              msg='Непогано!.'; }
+  else if(pct>=.4)  { title='🔭 Є над чим працювати'; msg='Спробуй знову.'; }
+  else              { title='📚 Потрібно вчитися!';   msg='Спробуй знову.'; }
+  document.getElementById('r-title').textContent=title;
+  document.getElementById('r-msg').textContent=msg;
+  const list=document.getElementById('rev-list');
+  QS.forEach((q,i)=>{
+    const ok=ans[i]===q.a;
+    const el=document.createElement('div');
+    el.className=`rev-item ${ok?'ok':'err'}`;
+    el.innerHTML=`
+      <span class="rev-icon">${ok?'✓':'✗'}</span>
+      <div>
+        <div class="rev-qn">${q.cat} · Питання ${i+1}</div>
+        <div>${q.q}</div>
+        ${!ok?`<div class="rev-ans">Правильно: ${LT[q.a]}) ${q.opts[q.a]}</div>`:''}
+      </div>`;
+    list.appendChild(el);
+  });
+}
+
+function restart(){
+  ans=new Array(QS.length).fill(null); cur=0;
+  QS.forEach((_,qi)=>{
+    const c=document.getElementById(`qc${qi}`);
+    c.classList.remove('active','answered');
+    if(qi===0)c.classList.add('active');
+    QS[qi].opts.forEach((_,oi)=>{
+      const o=document.getElementById(`o${qi}_${oi}`);
+      o.classList.remove('correct','wrong','locked');
+    });
+    const fb=document.getElementById(`fb${qi}`);
+    fb.classList.remove('show','ok','err'); fb.textContent='';
+  });
+  document.getElementById('rfill').style.strokeDashoffset=440;
+  document.getElementById('rev-list').innerHTML='';
+  document.getElementById('results').style.display='none';
+  document.getElementById('quiz-wrap').style.display='block';
+  refreshUI();
+}
+
+refreshUI();
+</script>
+</body>
+</html>
